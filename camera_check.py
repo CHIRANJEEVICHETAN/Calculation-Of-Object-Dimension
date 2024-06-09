@@ -18,7 +18,3 @@ while (retu == False):
     cap.release()
 
     i += 1
-
-# print(plt.imshow(frame))
-# time.sleep(3)
-# cap.release()
