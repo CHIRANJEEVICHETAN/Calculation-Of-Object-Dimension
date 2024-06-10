@@ -25,6 +25,10 @@ def process_frame(frame, ref_width):
     cnts = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cnts = imutils.grab_contours(cnts)
 
+    # Ensure that at least one contour is found
+    if len(cnts) == 0:
+        return frame
+
     # Sort the contours from left-to-right and then initialize the distance colors and reference object
     (cnts, _) = contours.sort_contours(cnts)
     colors = ((0, 0, 255), (240, 0, 159), (0, 165, 255), (255, 255, 0), (255, 0, 255))
@@ -74,7 +78,7 @@ def process_frame(frame, ref_width):
             # Draw circles corresponding to the current points and connect them with a line
             cv2.circle(orig, (int(xA), int(yA)), 5, color, -1)
             cv2.circle(orig, (int(xB), int(yB)), 5, color, -1)
-            cv2.line(orig, (int(xA), int(yA)), (int(xB), int(yB)), color, 2)
+            cv2.line(orig, (int(xA), int(yA)), (int(xB, int(yB)), color, 2)
 
             # Compute the Euclidean distance between the coordinates, and then convert the distance in pixels to distance in units
             D = dist.euclidean((xA, yA), (xB, yB)) / refObj[2]
@@ -85,6 +89,8 @@ def process_frame(frame, ref_width):
         # Show the output frame
         cv2.imshow("Frame", orig)
 
+    return orig
+
 def process_video(url, ref_width):
     cap = cv2.VideoCapture(url)
 
@@ -93,7 +99,7 @@ def process_video(url, ref_width):
         if not ret:
             break
 
-        process_frame(frame, ref_width)
+        processed_frame = process_frame(frame, ref_width)
         time.sleep(3)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -104,7 +110,8 @@ def process_video(url, ref_width):
 
 def process_image(image_path, ref_width):
     frame = cv2.imread(image_path)
-    process_frame(frame, ref_width)
+    processed_frame = process_frame(frame, ref_width)
+    cv2.imshow("Image", processed_frame)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
