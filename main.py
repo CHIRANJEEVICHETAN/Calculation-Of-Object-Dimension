@@ -6,11 +6,10 @@ import numpy as np
 import argparse
 import imutils
 import time
-
+import os
 
 def midpoint(ptA, ptB):
     return ((ptA[0] + ptB[0]) * 0.5, (ptA[1] + ptB[1]) * 0.5)
-
 
 def process_frame(frame, ref_width):
     # Convert the frame to grayscale and blur it slightly
@@ -23,14 +22,12 @@ def process_frame(frame, ref_width):
     edged = cv2.erode(edged, None, iterations=1)
 
     # Find contours in the edge map
-    cnts = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL,
-                            cv2.CHAIN_APPROX_SIMPLE)
+    cnts = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cnts = imutils.grab_contours(cnts)
 
     # Sort the contours from left-to-right and then initialize the distance colors and reference object
     (cnts, _) = contours.sort_contours(cnts)
-    colors = ((0, 0, 255), (240, 0, 159), (0, 165, 255), (255, 255, 0),
-              (255, 0, 255))
+    colors = ((0, 0, 255), (240, 0, 159), (0, 165, 255), (255, 255, 0), (255, 0, 255))
     refObj = None
 
     # Loop over the contours individually
@@ -41,7 +38,7 @@ def process_frame(frame, ref_width):
 
         # Compute the rotated bounding box of the contour
         box = cv2.minAreaRect(c)
-        box = cv2.boxPoints(box)
+        box = cv2.boxPoints(box) if imutils.is_cv2() else cv2.boxPoints(box)
         box = np.array(box, dtype="int")
 
         # Order the points in the contour such that they appear in top-left, top-right, bottom-right, and bottom-left order, then draw the outline of the rotated bounding box
@@ -88,48 +85,50 @@ def process_frame(frame, ref_width):
         # Show the output frame
         cv2.imshow("Frame", orig)
 
-
-def main():
-    # Construct the argument parse and parse the arguments
-    ap = argparse.ArgumentParser()
-    ap.add_argument(
-        "-w",
-        "--width",
-        type=float,
-        required=True,
-        help="width of the left-most object in the image (in inches)")
-    ap.add_argument("-u",
-                    "--url",
-                    type=str,
-                    required=True,
-                    help="URL of the IP Webcam stream")
-    args = vars(ap.parse_args())
-
-    # Capture video from the IP Webcam URL
-    cap = cv2.VideoCapture(args["url"])
+def process_video(url, ref_width):
+    cap = cv2.VideoCapture(url)
 
     while True:
-        # Read a frame from the video capture
         ret, frame = cap.read()
-
-        # If the frame was not grabbed, then we have reached the end of the video
         if not ret:
             break
 
-        # Process the frame to find and measure objects
-        process_frame(frame, args["width"])
+        process_frame(frame, ref_width)
+        time.sleep(3)
 
-        # Wait for a short duration before capturing the next frame
-        time.sleep(0.1)  # Adjust the delay as needed
-
-        # Check if 'q' key is pressed
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-    # Release the capture and close any open windows
     cap.release()
     cv2.destroyAllWindows()
 
+def process_image(image_path, ref_width):
+    frame = cv2.imread(image_path)
+    process_frame(frame, ref_width)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("-w", "--width", type=float, required=True, help="width of the left-most object in the image (in inches)")
+    ap.add_argument("-m", "--mode", type=str, required=True, choices=["image", "video"], help="mode of input: 'image' or 'video'")
+    ap.add_argument("-u", "--url", type=str, help="URL of the IP Webcam stream (required if mode is 'video')")
+    ap.add_argument("-i", "--image", type=str, help="Path to the input image (required if mode is 'image')")
+    args = vars(ap.parse_args())
+
+    if args["mode"] == "video":
+        if args["url"] is None:
+            print("Error: URL must be provided for video mode.")
+            return
+        process_video(args["url"], args["width"])
+    elif args["mode"] == "image":
+        if args["image"] is None:
+            print("Error: Image path must be provided for image mode.")
+            return
+        if not os.path.isfile(args["image"]):
+            print("Error: Image file does not exist.")
+            return
+        process_image(args["image"], args["width"])
 
 if __name__ == "__main__":
     main()
