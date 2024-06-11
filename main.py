@@ -6,6 +6,7 @@ import numpy as np
 import argparse
 import imutils
 import time
+import object_size as obs  # Import object_size
 
 def midpoint(ptA, ptB):
     return ((ptA[0] + ptB[0]) * 0.5, (ptA[1] + ptB[1]) * 0.5)
@@ -113,7 +114,6 @@ def process_frame(frame, ref_width):
             cv2.putText(orig, "{:.1f}in".format(D), (int(mX), int(mY - 10)),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
 
-
         cv2.imshow("Frame", orig)
         key = cv2.waitKey(1) & 0xFF
 
@@ -165,8 +165,9 @@ def main():
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
-
         cap.release()
+    elif args["mode"] == "dimension":
+        obs.main()
 
     cv2.destroyAllWindows()
 

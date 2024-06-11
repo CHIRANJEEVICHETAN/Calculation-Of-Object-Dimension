@@ -3,6 +3,7 @@ import torch
 from scipy.spatial import distance as dist
 from imutils import perspective
 from imutils import contours
+import object_size as obs
 import numpy as np
 import argparse
 import imutils
@@ -12,7 +13,7 @@ def midpoint(ptA, ptB):
     return ((ptA[0] + ptB[0]) * 0.5, (ptA[1] + ptB[1]) * 0.5)
 
 def load_yolo_v5():
-    model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
+    model = torch.hub.load('ultralytics/yolov5', 'yolov5m', pretrained=True)
     return model
 
 def detect_objects_yolo_v5(model, frame):
@@ -193,6 +194,8 @@ def main():
                 break
 
         cap.release()
+    elif args["mode"] == "dimension":
+        obs.main()
 
     cv2.destroyAllWindows()
 
