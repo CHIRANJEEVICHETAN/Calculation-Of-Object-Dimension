@@ -10,7 +10,6 @@ import torch
 def midpoint(ptA, ptB):
     return ((ptA[0] + ptB[0]) * 0.5, (ptA[1] + ptB[1]) * 0.5)
 
-
 def measure_objects(image, width, pixelsPerMetric):
     # Convert the image to grayscale and blur it slightly
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -27,6 +26,8 @@ def measure_objects(image, width, pixelsPerMetric):
 
     # Sort the contours from left-to-right and initialize the pixels per metric calibration variable
     (cnts, _) = contours.sort_contours(cnts)
+
+    objects = []
 
     # Loop over the contours individually
     for c in cnts:
@@ -77,17 +78,16 @@ def measure_objects(image, width, pixelsPerMetric):
         dimA = dA / pixelsPerMetric
         dimB = dB / pixelsPerMetric
 
-        # Draw the object sizes on the image
-        cv2.putText(orig, "{:.1f}in".format(dimA), (int(tltrX - 15), int(tltrY - 10)), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 255), 2)
-        cv2.putText(orig, "{:.1f}in".format(dimB), (int(trbrX + 10), int(trbrY)), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 255), 2)
+        objects.append((orig, dimA, dimB))
 
-    return orig, pixelsPerMetric
+    return objects, pixelsPerMetric
+
 
 def detect_objects_with_yolov5(image):
-    # Load the YOLOv5 model (change to yolov5m or yolov5l for more accuracy)
+    # Load the YOLOv5 model
     model = torch.hub.load('ultralytics/yolov5', 'yolov5m')  # Use 'yolov5x' for a more accurate model
     
-    # Detect objects
+    # Perform detection
     results = model(image)
     
     # Process the results
@@ -99,7 +99,6 @@ def detect_objects_with_yolov5(image):
 def process_video(stream_url, width):
     # Capture video from IP Webcam stream
     cap = cv2.VideoCapture(stream_url)
-    pixelsPerMetric = None
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -119,10 +118,7 @@ def process_video(stream_url, width):
             label_name = label_names[int(label)]
             cv2.putText(frame, label_name, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
         
-        # Measure objects
-        frame, pixelsPerMetric = measure_objects(frame, width, pixelsPerMetric)
-        
-        # Display the frame
+        # Display the frame in real-time
         cv2.imshow("Video", frame)
         
         # Break the loop on 'q' key press
@@ -132,6 +128,22 @@ def process_video(stream_url, width):
     # Release the video capture object and close all windows
     cap.release()
     cv2.destroyAllWindows()
+
+
+def display_objects(objects):
+    obj_index = 0
+    while True:
+        img, dimA, dimB = objects[obj_index]
+        cv2.putText(img, "{:.1f}in".format(dimA), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 255), 2)
+        cv2.putText(img, "{:.1f}in".format(dimB), (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 255), 2)
+        cv2.imshow("Object", img)
+        
+        key = cv2.waitKey(0)
+        if key == ord('n'):
+            obj_index = (obj_index + 1) % len(objects)
+        elif key == ord('q'):
+            cv2.destroyAllWindows()
+            break
 
 def main():
     # Construct the argument parser and parse the arguments
@@ -149,7 +161,7 @@ def main():
         
         # Load the image
         image = cv2.imread(args["image"])
-        
+
         # Detect objects using YOLOv5
         labels, cords, label_names = detect_objects_with_yolov5(image)
         
@@ -164,13 +176,11 @@ def main():
             cv2.putText(image, label_name, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
         
         # Measure objects
-        image, _ = measure_objects(image, args["width"], pixelsPerMetric=None)
+        objects, _ = measure_objects(image, args["width"], pixelsPerMetric=None)
         
-        # Display the image
-        cv2.imshow("Image", image)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-
+        # Display objects one by one
+        display_objects(objects)
+    
     elif args["capture"] == "video":
         if args["url"] is None:
             raise ValueError("URL must be provided for video mode.")
