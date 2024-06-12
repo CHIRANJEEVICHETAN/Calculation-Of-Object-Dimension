@@ -139,6 +139,11 @@ def main():
                     type=str,
                     required=False,
                     help="URL of the IP Webcam stream (required for 'video' mode)")
+    ap.add_argument("-c",
+                    "--capture",
+                    type=str,
+                    default="image",
+                    help="mode of the operation ('image' or 'video') in object_size program")
     ap.add_argument("-i",
                     "--image",
                     type=str,
