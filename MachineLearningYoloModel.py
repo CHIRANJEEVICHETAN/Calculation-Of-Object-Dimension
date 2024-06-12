@@ -1,9 +1,9 @@
 import cv2
 import torch
 from scipy.spatial import distance as dist
+import detect_object_size as obs
 from imutils import perspective
 from imutils import contours
-import object_size as obs
 import numpy as np
 import argparse
 import imutils
