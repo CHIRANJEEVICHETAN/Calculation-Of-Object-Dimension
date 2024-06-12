@@ -148,8 +148,9 @@ def main():
         "-m",
         "--mode",
         type=str,
+        choices=["image", "video", "dimension"],
         default="video",
-        help="mode of the operation: 'image' or 'video' (default is 'video')")
+        help="mode of the operation: 'image', 'video' or 'dimension' (default is 'video')")
     ap.add_argument("-w",
                     "--width",
                     type=float,
@@ -160,6 +161,13 @@ def main():
                     type=str,
                     required=False,
                     help="URL of the IP Webcam stream (required for 'video' mode)")
+    
+    ap.add_argument("-c",
+                    "--capture",
+                    type=str,
+                    default="image",
+                    help="mode of the operation ('image' or 'video') in object_size program")
+
     ap.add_argument("-i",
                     "--image",
                     type=str,
@@ -174,6 +182,8 @@ def main():
             print("Image path is required for image mode.")
             return
         process_image(args["image"], args["width"], model)
+    elif args["mode"] == "dimension":
+        obs.main()
     elif args["mode"] == "video":
         if args.get("url", None) is None:
             print("URL is required for video mode.")
@@ -194,8 +204,6 @@ def main():
                 break
 
         cap.release()
-    elif args["mode"] == "dimension":
-        obs.main()
 
     cv2.destroyAllWindows()
 
