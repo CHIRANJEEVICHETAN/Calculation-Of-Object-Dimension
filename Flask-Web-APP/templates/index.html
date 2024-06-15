@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Object Dimension Detection</title>
+    <style>
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+      }
+      h1 {
+        font-size: 45px;
+        color: orange;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Upload Image</h1>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+      <input type="file" name="file" />
+      <input type="text" name="width" placeholder="Reference width in inches" />
+      <select name="mode">
+        <option value="distance">Object Size</option>
+        <option value="size">Object Distance</option>
+      </select>
+      <input type="submit" value="Upload" />
+    </form>
+    <h1>Video Stream</h1>
+    <form action="/video" method="get">
+      <input type="text" name="url" placeholder="Video URL" />
+      <input type="text" name="width" placeholder="Reference width in inches" />
+      <select name="mode">
+        <option value="distance">Object Size</option>
+        <option value="size">Object Distance</option>
+      </select>
+      <input type="submit" value="Start" />
+    </form>
+
+    {% if result %}
+    <h2>Processed Image:</h2>
+    <img src="{{ result }}" alt="Processed Image" />
+    {% endif %}
+  </body>
+</html>
