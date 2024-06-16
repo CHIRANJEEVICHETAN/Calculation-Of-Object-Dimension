@@ -50,7 +50,7 @@ custom_vision_client = CustomVisionPredictionClient(ENDPOINT, credentials)
 
 # Azure Blob Storage configuration
 blob_service_client = BlobServiceClient.from_connection_string(os.getenv("AZURE_STORAGE_CONNECTION_STRING"))
-container_client = blob_service_client.get_container_client("<CONTAINER-NAME>")
+container_client = blob_service_client.get_container_client("PROJECT_TYPE")
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
