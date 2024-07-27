@@ -163,8 +163,8 @@ Images uploaded to the application are processed and stored in **Azure Blob Stor
 from azure.storage.blob import BlobServiceClient
 
 # Azure Blob Storage configuration
-blob_service_client = BlobServiceClient.from_connection_string("<Include_BLOB_String>")
-container_client = blob_service_client.get_container_client("<Include_BLOB_Container_Name>")
+blob_service_client = BlobServiceClient.from_connection_string("DefaultEndpointsProtocol=https;AccountName=csg10032003940f891b;AccountKey=o4lJfkzxaligyfrgl8oBdYF4yGgMcLUgVl+dlkjJMY6u4c8wuIwmtoqb0AB90trbcbbsd4sFYzcq+AStQFbZ0A==;EndpointSuffix=core.windows.net")
+container_client = blob_service_client.get_container_client("object-dimension-blob")
 
 def upload_image_to_blob(image_path, image_name):
     unique_name = str(uuid.uuid4()) + "_" + image_name

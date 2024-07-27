@@ -6,41 +6,188 @@
     <style>
       body {
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
-        flex-direction: column;
+        min-height: 100vh;
+        font-family: Arial, sans-serif;
+        background: #f8f9fa;
+        margin: 0;
       }
       h1 {
-        font-size: 45px;
-        color: orange;
+        font-size: 2.5rem;
+        color: #333;
+        margin-bottom: 1rem;
+      }
+      .container {
+        background: #fff;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin: 1rem;
+        width: 90%;
+        max-width: 600px;
+        text-align: center;
+      }
+      .upload-container,
+      .video-container {
+        border: 2px dashed #ccc;
+        padding: 1.5rem;
+        border-radius: 8px;
+        transition: border-color 0.3s;
+      }
+      .upload-container.dragover,
+      .video-container.dragover {
+        border-color: #007bff;
+      }
+      label {
+        display: block;
+        cursor: pointer;
+        margin-bottom: 1rem;
+        font-size: 1rem;
+        color: #007bff;
+      }
+      input[type="file"] {
+        display: none;
+      }
+      input[type="text"],
+      select,
+      input[type="submit"] {
+        display: block;
+        width: calc(100% - 2rem);
+        margin: 0.5rem auto;
+        padding: 0.5rem;
+        font-size: 1rem;
+      }
+      input[type="submit"] {
+        background: #007bff;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+      input[type="submit"]:hover {
+        background: #0056b3;
+      }
+      .file-info {
+        margin: 1rem 0;
+        font-size: 1rem;
+        color: #555;
+      }
+      .result-container {
+        margin-top: 2rem;
+      }
+      #video_feed {
+        max-width: 100%;
+        height: auto;
       }
     </style>
   </head>
   <body>
-    <h1>Upload Image</h1>
-    <form action="/upload" method="post" enctype="multipart/form-data">
-      <input type="file" name="file" />
-      <input type="text" name="width" placeholder="Reference width in inches" />
-      <select name="mode">
-        <option value="distance">Object Size</option>
-        <option value="size">Object Distance</option>
-      </select>
-      <input type="submit" value="Upload" />
-    </form>
-    <h1>Video Stream</h1>
-    <form action="/video" method="get">
-      <input type="text" name="url" placeholder="Video URL" />
-      <input type="text" name="width" placeholder="Reference width in inches" />
-      <select name="mode">
-        <option value="distance">Object Size</option>
-        <option value="size">Object Distance</option>
-      </select>
-      <input type="submit" value="Start" />
-    </form>
+    <h1>Object Dimension Detection & Distance Calculation</h1>
+    <div class="container upload-container" id="drop-zone">
+      <form action="/upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" id="file-input" />
+        <label for="file-input">Drag & Drop or Click to Upload Image</label>
+        <div class="file-info" id="file-info">No file uploaded</div>
+        <input
+          type="text"
+          name="width"
+          placeholder="Reference width in inches"
+          required
+        />
+        <select name="mode" required>
+          <option value="distance">Object Size</option>
+          <option value="size">Object Distance</option>
+        </select>
+        <input type="submit" value="Upload" />
+      </form>
+    </div>
+
+    <div class="container video-container">
+      <form id="video-form">
+        <input
+          type="text"
+          name="video_source"
+          placeholder="Enter Webcam URL (e.g., http://192.168.0.106:8080/video)"
+          required
+        />
+        <input
+          type="text"
+          name="ref_width"
+          placeholder="Reference width in inches"
+          required
+        />
+        <select name="mode" required>
+          <option value="distance">Object Size</option>
+          <option value="size">Object Distance</option>
+        </select>
+        <input type="submit" value="Start Video Stream" />
+      </form>
+    </div>
+
+    <div class="container video-stream-container" style="display: none">
+      <h2>Live Video Stream</h2>
+      <img id="video_feed" src="" alt="Video Feed" />
+    </div>
 
     {% if result %}
-    <h2>Processed Image:</h2>
-    <img src="{{ result }}" alt="Processed Image" />
+    <div class="result-container">
+      <h2>Processed Image:</h2>
+      <img src="{{ result }}" alt="Processed Image" />
+    </div>
     {% endif %}
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const dropZone = document.getElementById("drop-zone");
+        const fileInput = document.getElementById("file-input");
+        const fileInfo = document.getElementById("file-info");
+
+        dropZone.addEventListener("dragover", (e) => {
+          e.preventDefault();
+          dropZone.classList.add("dragover");
+        });
+
+        dropZone.addEventListener("dragleave", () => {
+          dropZone.classList.remove("dragover");
+        });
+
+        dropZone.addEventListener("drop", (e) => {
+          e.preventDefault();
+          dropZone.classList.remove("dragover");
+
+          if (e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files;
+            fileInfo.textContent = `File: ${e.dataTransfer.files[0].name}`;
+          }
+        });
+
+        fileInput.addEventListener("change", () => {
+          if (fileInput.files.length) {
+            fileInfo.textContent = `File: ${fileInput.files[0].name}`;
+          }
+        });
+
+        const videoForm = document.getElementById("video-form");
+        const videoStreamContainer = document.querySelector(
+          ".video-stream-container"
+        );
+        const videoFeed = document.getElementById("video_feed");
+
+        videoForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+          const videoSource = this.video_source.value;
+          const refWidth = this.ref_width.value;
+          const mode = this.mode.value;
+
+          videoFeed.src = `/video_feed?video_source=${encodeURIComponent(
+            videoSource
+          )}&ref_width=${refWidth}&mode=${mode}`;
+          videoStreamContainer.style.display = "block";
+          this.parentElement.style.display = "none";
+        });
+      });
+    </script>
   </body>
 </html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Object Dimension Detection Result</title>
+    <style>
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        font-family: Arial, sans-serif;
+        background: #f8f9fa;
+        margin: 0;
+      }
+      .container {
+        background: #fff;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin: 1rem;
+        width: 90%;
+        max-width: 600px;
+        text-align: center;
+      }
+      img {
+        max-width: 100%;
+        height: auto;
+        border: 1px solid #ddd;
+        margin-bottom: 1rem;
+      }
+      .details {
+        font-size: 1.1rem;
+        color: #333;
+      }
+      a {
+        text-decoration: none;
+        color: #007bff;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Processed Image</h1>
+      <img src="{{ processed_image }}" alt="Processed Image" />
+      <div class="details">
+        <p>
+          Original Image:
+          <a href="{{ original_image }}" target="_blank">View</a>
+        </p>
+        <p>
+          Processed Image:
+          <a href="{{ processed_image }}" target="_blank">View</a>
+        </p>
+        <p>
+          Blob URL: <a href="{{ blob_url }}" target="_blank">{{ blob_url }}</a>
+        </p>
+        <p>Detected Dimensions: {{ dimensions }}</p>
+        <p>
+          <button type="button"><a href="/">Upload Another Image</a></button>
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
